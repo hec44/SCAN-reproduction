@@ -1,6 +1,11 @@
 
 # -*- coding: utf-8 -*-
 
+import os
+
+cwd = os.getcwd()
+print(cwd)
+
 def generate_dataset(path_org,path_trg):
     """
     Function that generates a dataset in the format
@@ -23,9 +28,7 @@ def generate_dataset(path_org,path_trg):
             file_in_out.write(line_in+"\n")
             file_out_out.write(line_out)
 
-    
+
 if __name__ == "__main__":
-    generate_dataset(r"C:\Users\hecto\Documents\ATNLP\SCAN-reproduction\data\simple_split\tasks_test_simple.txt",\
-                      r"C:\Users\hecto\Documents\ATNLP\SCAN-reproduction\data\experiment1\test")
-
-
+    generate_dataset(os.path.join(cwd, "data\\simple_split\\tasks_test_simple.txt"),\
+                      os.path.join(cwd, "data\\experiment1\\test"))
