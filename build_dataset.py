@@ -4,7 +4,6 @@
 import os
 
 cwd = os.getcwd()
-print(cwd)
 
 def generate_dataset(path_org,path_trg):
     """
