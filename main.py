@@ -1,5 +1,5 @@
 from data import load_data
-from train import load_model,train
+from train import load_model, train
 
 
 def main(path, name, in_ext, out_ext):
@@ -8,5 +8,5 @@ def main(path, name, in_ext, out_ext):
     train(model,train_iter,optimizer,criterion)
     
 
-def if __name__ == "__main__":
+if __name__ == "__main__":
     main()
