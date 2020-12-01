@@ -63,6 +63,8 @@ def load_model(SRC,TRG):
 
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 
+    return model,optimizer,criterion
+
 
 def train(model: nn.Module,
           iterator: BucketIterator,
