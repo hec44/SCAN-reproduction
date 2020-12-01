@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch import Tensor
 from torchtext.data import BucketIterator
-from models import Encoder,Decoder,Attention,Seq2Seq
+from models import Encoder,Decoder,Seq2Seq
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
 
 import pdb
@@ -35,9 +35,7 @@ def load_model(SRC,TRG):
 
     enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
 
-    attn = Attention(ENC_HID_DIM, DEC_HID_DIM, ATTN_DIM)
-
-    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, attn)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT)
 
     model = Seq2Seq(enc, dec, device).to(device)
 
