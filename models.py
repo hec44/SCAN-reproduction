@@ -181,3 +181,7 @@ class Seq2Seq(nn.Module):
             output = (trg[t] if teacher_force else top1)
 
         return outputs
+
+
+class Seq2Seq():
+    pass

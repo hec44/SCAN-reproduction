@@ -1,16 +1,19 @@
 import random
 from typing import Tuple
-
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch import Tensor
-
+from torchtext.data import BucketIterator
 from models import Encoder,Decoder,Attention,Seq2Seq
-from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN
+from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
 
+import pdb
 
 def load_model(SRC,TRG):
+
+    device = torch.device('cpu')
 
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
@@ -69,21 +72,20 @@ def load_model(SRC,TRG):
 def train(model: nn.Module,
           iterator: BucketIterator,
           optimizer: optim.Optimizer,
-          criterion: nn.Module,
-          clip: float):
+          criterion: nn.Module):
 
     model.train()
 
     epoch_loss = 0
 
-    for _, batch in enumerate(iterator):
+    for _, batch in enumerate(iter(iterator)):
 
         src = batch.src
         trg = batch.trg
 
         optimizer.zero_grad()
 
-        output = model(src, trg)
+        output = model(src[0], trg[0])
 
         output = output[1:].view(-1, output.shape[-1])
         trg = trg[1:].view(-1)
@@ -92,7 +94,7 @@ def train(model: nn.Module,
 
         loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
 
         optimizer.step()
 
