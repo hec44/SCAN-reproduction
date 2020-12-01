@@ -8,7 +8,7 @@ from torchtext import data
 from torchtext.data import Dataset, Iterator, Field
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN
 
-def load_data(path, in_ext, out_ext):
+def load_data(path, name, in_ext, out_ext):
 
 	"""
 	First attempt at creating a working Dataloader that will
@@ -39,6 +39,9 @@ def load_data(path, in_ext, out_ext):
 
 	# make iterator for splits
 	train_iter = data.BucketIterator.splits(
-    	(train_data), batch_size=15, device=0)
+            repeat=False, sort=False,
+            batch_size=15, 
+            train=True, sort_within_batch=True,
+            sort_key=lambda x: len(x.src), shuffle=shuffle)
 	return train_iter,src_field,trg_field
 
