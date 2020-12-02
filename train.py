@@ -75,36 +75,40 @@ def train(model: nn.Module,
 
     model.train()
 
-    epoch_loss = 0
+    for epoch in range(5):
 
-    for _, batch in tqdm(enumerate(iter(iterator))):
+        epoch_loss = 0
 
-        src = batch.src
-        trg = batch.trg
+        for _, batch in tqdm(enumerate(iter(iterator))):
 
-        #print(src[0].shape, trg[0].shape)
+            src = batch.src
+            trg = batch.trg
 
-        optimizer.zero_grad()
+            #print(src[0].shape, trg[0].shape)
 
-        output = model(src, trg[0])
+            optimizer.zero_grad()
 
-        output = output[1:].view(-1, output.shape[-1])
+            output = model(src, trg[0])
 
-        trg2 = trg[0][:,1:].reshape(output.shape[0])
-        
-        #pdb.set_trace()
+            output = output[1:].view(-1, output.shape[-1])
 
-        # output should be 2-dimensional, and trg2 should be 1-dimensional.
-        # first dimension of output should match dimension of trg2.
+            trg2 = trg[0][:,1:].reshape(output.shape[0])
+            
+            #pdb.set_trace()
 
-        loss = criterion(output, trg2)
+            # output should be 2-dimensional, and trg2 should be 1-dimensional.
+            # first dimension of output should match dimension of trg2.
 
-        loss.backward()
+            loss = criterion(output, trg2)
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
+            loss.backward()
 
-        optimizer.step()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
 
-        epoch_loss += loss.item()
+            optimizer.step()
+
+            epoch_loss += loss.item()
+
+        print(epoch_loss/len(iterator))
 
     return epoch_loss / len(iterator)
