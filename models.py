@@ -46,7 +46,7 @@ class Encoder(nn.Module):
 		#hidden = torch.tanh(self.fc(torch.cat((hidden[-1][-2,:,:], hidden[-1][-1,:,:]), dim = 1)))
 
 		# returning the last state of the hidden layer
-		return outputs, hidden[-1], memory[-1]
+		return outputs, hidden, memory
 
 class Decoder(nn.Module):
 	def __init__(self,
@@ -67,7 +67,7 @@ class Decoder(nn.Module):
 
 		self.rnn = nn.LSTM(input_size = emb_dim, hidden_size = dec_hid_dim, num_layers = 2)
 
-		self.out = nn.Linear(emb_dim, output_dim)
+		self.out = nn.Linear(dec_hid_dim, output_dim)
 
 		self.dropout = nn.Dropout(dropout)
 
@@ -80,24 +80,19 @@ class Decoder(nn.Module):
 
 		embedded = self.dropout(self.embedding(decoding_input))
 
-		pdb.set_trace()
-
 		#output, (decoder_hidden, decoder_memory) = self.rnn(embedded, decoder_hidden.unsqueeze(0))
 		output, (decoder_hidden, decoder_memory) = self.rnn(embedded, (decoder_hidden, decoder_memory))
 
-		decoder_hidden = decoder_hidden[-1]
-
-		print('hehelolz')
+		#print('\n\n\n\nhehelolz\n\n\n\n')
 
 		embedded = embedded.squeeze(0)
 		output = output.squeeze(0)
 		decoding_input = decoding_input.squeeze(0)
 
-		output = self.out(torch.cat((output,
-									 decoding_input,
-									 embedded), dim = 1))
+		#output = self.out(torch.cat((output, decoding_input, embedded), dim = 1.0))
+		output = self.out(output)
 
-		return output, decoder_hidden.squeeze(0)
+		return output, decoder_hidden, decoder_memory
 
 
 class Seq2Seq(nn.Module):
@@ -116,23 +111,24 @@ class Seq2Seq(nn.Module):
 				trg: Tensor,
 				teacher_forcing_ratio: float = 0.5) -> Tensor:
 
-		batch_size = src[0].shape[1]
-		max_len = trg.shape[0]
+		batch_size = src[0].shape[0]
+		max_len = trg.shape[1]
 		trg_vocab_size = self.decoder.output_dim
 
+		#outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
 		outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
 
 		_, hidden, memory = self.encoder(src)
 
-		# first input to the decoder is the <sos> token
-		output = trg[0,:]
+		# first input_vec to the decoder is the <sos> token
+		#output = trg[:,0]
+		input_vec = trg[:,0]
 
 		for t in range(1, max_len):
-			output, hidden, memory = self.decoder(output, hidden, memory)
+			output, hidden, memory = self.decoder(input_vec, hidden, memory)
 			outputs[t] = output
 			teacher_force = random.random() < teacher_forcing_ratio
-			top1 = output.max(1)[1]
-			output = top1
-			#output = (trg[t] if teacher_force else top1)
+			top1 = output.argmax(1)
+			input_vec = (trg[:,t] if teacher_force else top1)
 
 		return outputs

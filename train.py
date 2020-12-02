@@ -86,9 +86,12 @@ def train(model: nn.Module,
         output = model(src, trg[0])
 
         output = output[1:].view(-1, output.shape[-1])
-        trg = trg[1:].view(-1)
 
-        loss = criterion(output, trg)
+        trg2 = trg[0][1:].view(-1)
+        
+        pdb.set_trace()
+
+        loss = criterion(output, trg2)
 
         loss.backward()
 
