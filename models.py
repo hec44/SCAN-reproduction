@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch import Tensor
 import pdb
-
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class Encoder(nn.Module):
 	def __init__(self,
@@ -32,17 +32,21 @@ class Encoder(nn.Module):
 		self.dropout = nn.Dropout(dropout)
 
 	def forward(self,
-				src: Tensor) -> Tuple[Tensor]:
+				src: tuple) -> Tuple[Tensor]:
 
-		#pdb.set_trace()
+		embedded = self.dropout(self.embedding(src[0]))
 
-		embedded = self.dropout(self.embedding(src))
+		packed = pack_padded_sequence(embedded, src[1].cpu(),
+                                      batch_first=True)
 
-		outputs, hidden = self.rnn(embedded)
+		outputs, (hidden, memory) = self.rnn(packed)
 
-		hidden = torch.tanh(self.fc(torch.cat((hidden[-1][-2,:,:], hidden[-1][-1,:,:]), dim = 1)))
+		outputs, _ = pad_packed_sequence(outputs, batch_first=True)
 
-		return outputs, hidden
+		#hidden = torch.tanh(self.fc(torch.cat((hidden[-1][-2,:,:], hidden[-1][-1,:,:]), dim = 1)))
+
+		# returning the last state of the hidden layer
+		return outputs, hidden[-1], memory[-1]
 
 class Decoder(nn.Module):
 	def __init__(self,
@@ -61,7 +65,7 @@ class Decoder(nn.Module):
 
 		self.embedding = nn.Embedding(output_dim, emb_dim)
 
-		self.rnn = nn.GRU((enc_hid_dim * 2) + emb_dim, dec_hid_dim)
+		self.rnn = nn.LSTM(input_size = emb_dim, hidden_size = dec_hid_dim, num_layers = 2)
 
 		self.out = nn.Linear(emb_dim, output_dim)
 
@@ -70,15 +74,20 @@ class Decoder(nn.Module):
 	def forward(self,
 				decoding_input: Tensor,
 				decoder_hidden: Tensor,
-				encoder_outputs: Tensor) -> Tuple[Tensor]:
+				decoder_memory: Tensor) -> Tuple[Tensor]:
 
 		decoding_input = decoding_input.unsqueeze(0)
 
 		embedded = self.dropout(self.embedding(decoding_input))
 
-		
+		pdb.set_trace()
 
-		output, decoder_hidden = self.rnn(embedded, decoder_hidden.unsqueeze(0))
+		#output, (decoder_hidden, decoder_memory) = self.rnn(embedded, decoder_hidden.unsqueeze(0))
+		output, (decoder_hidden, decoder_memory) = self.rnn(embedded, (decoder_hidden, decoder_memory))
+
+		decoder_hidden = decoder_hidden[-1]
+
+		print('hehelolz')
 
 		embedded = embedded.squeeze(0)
 		output = output.squeeze(0)
@@ -103,26 +112,27 @@ class Seq2Seq(nn.Module):
 		self.device = device
 
 	def forward(self,
-				src: Tensor,
+				src: tuple,
 				trg: Tensor,
 				teacher_forcing_ratio: float = 0.5) -> Tensor:
 
-		batch_size = src.shape[1]
+		batch_size = src[0].shape[1]
 		max_len = trg.shape[0]
 		trg_vocab_size = self.decoder.output_dim
 
 		outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
 
-		encoder_outputs, hidden = self.encoder(src)
+		_, hidden, memory = self.encoder(src)
 
 		# first input to the decoder is the <sos> token
 		output = trg[0,:]
 
 		for t in range(1, max_len):
-			output, hidden = self.decoder(output, hidden, encoder_outputs)
+			output, hidden, memory = self.decoder(output, hidden, memory)
 			outputs[t] = output
 			teacher_force = random.random() < teacher_forcing_ratio
 			top1 = output.max(1)[1]
-			output = (trg[t] if teacher_force else top1)
+			output = top1
+			#output = (trg[t] if teacher_force else top1)
 
 		return outputs

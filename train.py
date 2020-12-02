@@ -83,7 +83,7 @@ def train(model: nn.Module,
 
         optimizer.zero_grad()
 
-        output = model(src[0], trg[0])
+        output = model(src, trg[0])
 
         output = output[1:].view(-1, output.shape[-1])
         trg = trg[1:].view(-1)
