@@ -8,6 +8,7 @@ from torch import Tensor
 from torchtext.data import BucketIterator
 from models import Encoder,Decoder,Seq2Seq
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
+from tqdm import tqdm
 
 import pdb
 
@@ -76,10 +77,12 @@ def train(model: nn.Module,
 
     epoch_loss = 0
 
-    for _, batch in enumerate(iter(iterator)):
+    for _, batch in tqdm(enumerate(iter(iterator))):
 
         src = batch.src
         trg = batch.trg
+
+        #print(src[0].shape, trg[0].shape)
 
         optimizer.zero_grad()
 
@@ -87,9 +90,12 @@ def train(model: nn.Module,
 
         output = output[1:].view(-1, output.shape[-1])
 
-        trg2 = trg[0][1:].view(-1)
+        trg2 = trg[0][:,1:].reshape(output.shape[0])
         
-        pdb.set_trace()
+        #pdb.set_trace()
+
+        # output should be 2-dimensional, and trg2 should be 1-dimensional.
+        # first dimension of output should match dimension of trg2.
 
         loss = criterion(output, trg2)
 
