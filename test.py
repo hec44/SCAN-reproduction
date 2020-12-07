@@ -14,8 +14,8 @@ def test(test_iter, model):
 		for _, batch in tqdm(enumerate(test_iter)):
 
 			src = batch.src
-            trg = batch.trg
+			trg = batch.trg
 
-            pdb.set_trace()
+			pdb.set_trace()
 
-            output = model(src, trg[0])
+			output = model(src, trg[0])
