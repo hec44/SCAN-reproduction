@@ -9,8 +9,10 @@ from torchtext.data import BucketIterator
 from models import Encoder,Decoder,Seq2Seq
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
 from tqdm import tqdm
-
+import os
 import pdb
+
+cwd = os.getcwd()
 
 def load_model(SRC,TRG):
 
@@ -60,7 +62,6 @@ def load_model(SRC,TRG):
     print(f'The model has {count_parameters(model):,} trainable parameters')
 
 
-
     PAD_IDX = TRG.vocab.stoi['PAD_TOKEN']
 
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
@@ -75,7 +76,7 @@ def train(model: nn.Module,
 
     model.train()
 
-    for epoch in range(5):
+    for epoch in range(1):
 
         epoch_loss = 0
 
@@ -111,4 +112,6 @@ def train(model: nn.Module,
 
         print(epoch_loss/len(iterator))
 
-    return epoch_loss / len(iterator)
+        torch.save(model.state_dict(), os.path.join(cwd, 'pretrained', 'model_1_'+str(epoch)+'.pt'))
+
+    return model

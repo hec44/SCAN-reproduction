@@ -109,6 +109,7 @@ class Seq2Seq(nn.Module):
 	def forward(self,
 				src: tuple,
 				trg: Tensor,
+				train: bool = False,
 				teacher_forcing_ratio: float = 0.5) -> Tensor:
 
 		batch_size = src[0].shape[0]
@@ -129,6 +130,9 @@ class Seq2Seq(nn.Module):
 			outputs[t] = output
 			teacher_force = random.random() < teacher_forcing_ratio
 			top1 = output.argmax(1)
-			input_vec = (trg[:,t] if teacher_force else top1)
+			if train == True:
+				input_vec = (trg[:,t] if teacher_force else top1)
+			else:
+				input_vec = top1
 
 		return outputs
