@@ -7,9 +7,9 @@ import pdb
 
 cwd = os.getcwd()
 
-def test(test_iter, model):
+def test(model, test_iter):
 
-	model.eval()
+	#model.eval()
 	with torch.no_grad():
 		for _, batch in tqdm(enumerate(test_iter)):
 
