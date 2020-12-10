@@ -29,8 +29,8 @@ def generate_dataset(path_org,path_trg):
 if __name__ == "__main__":
     cwd = os.getcwd()
 
-    generate_dataset(os.path.join(cwd, "data\\simple_split\\tasks_test_simple.txt"),\
-                      os.path.join(cwd, "data\\experiment1\\test"))
+    generate_dataset(os.path.join(cwd, "data/simple_split/tasks_test_simple.txt"),\
+                      os.path.join(cwd, "data/experiment1/test"))
 
-    generate_dataset(os.path.join(cwd, "data\\simple_split\\tasks_train_simple.txt"),\
-                      os.path.join(cwd, "data\\experiment1\\train"))
+    generate_dataset(os.path.join(cwd, "data/simple_split/tasks_train_simple.txt"),\
+                      os.path.join(cwd, "data/experiment1/train"))

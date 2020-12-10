@@ -11,4 +11,4 @@ def main(path_train, path_test, in_ext, out_ext):
 
 if __name__ == "__main__":
 	cwd = os.getcwd()
-	main(os.path.join(cwd, "data\\experiment1\\test"), os.path.join(cwd, "data\\experiment1\\train"), "in", "out")
+	main(os.path.join(cwd, "data/experiment1/train"), os.path.join(cwd, "data/experiment1/test"), "in", "out")

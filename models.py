@@ -70,6 +70,7 @@ class Decoder(nn.Module):
 		self.out = nn.Linear(dec_hid_dim, output_dim)
 
 		self.dropout = nn.Dropout(dropout)
+		self.softmax = nn.LogSoftmax(dim=1)
 
 	def forward(self,
 				decoding_input: Tensor,
@@ -90,7 +91,7 @@ class Decoder(nn.Module):
 		decoding_input = decoding_input.squeeze(0)
 
 		#output = self.out(torch.cat((output, decoding_input, embedded), dim = 1.0))
-		output = self.out(output)
+		output = self.softmax(self.out(output))
 
 		return output, decoder_hidden, decoder_memory
 
@@ -117,7 +118,8 @@ class Seq2Seq(nn.Module):
 		trg_vocab_size = self.decoder.output_dim
 
 		#outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
-		outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+
+		outputs = torch.zeros(batch_size, max_len, trg_vocab_size).to(self.device)
 
 		_, hidden, memory = self.encoder(src)
 
@@ -127,12 +129,14 @@ class Seq2Seq(nn.Module):
 
 		for t in range(1, max_len):
 			output, hidden, memory = self.decoder(input_vec, hidden, memory)
-			outputs[t] = output
+			outputs[:,t] = output
 			teacher_force = random.random() < teacher_forcing_ratio
 			top1 = output.argmax(1)
 			if train == True:
+				
 				input_vec = (trg[:,t] if teacher_force else top1)
 			else:
 				input_vec = top1
+				
 
 		return outputs

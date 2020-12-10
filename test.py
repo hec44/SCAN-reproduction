@@ -4,18 +4,26 @@ import os
 import torch
 from tqdm import tqdm
 import pdb
+from sklearn.metrics import accuracy_score
 
 cwd = os.getcwd()
 
 def test(model, test_iter):
 
 	#model.eval()
+	y_true=[]
+	y_pred=[]
 	with torch.no_grad():
 		for _, batch in tqdm(enumerate(test_iter)):
 
 			src = batch.src
 			trg = batch.trg
 
-			pdb.set_trace()
+			
 
 			output = model(src, trg[0])
+			y_true=y_true+list(torch.flatten(trg[0][:,1:]))
+			y_pred=y_pred+list(torch.flatten(output.argmax(2)[:,1:]))
+			#pdb.set_trace()
+	print("test done")
+	print(accuracy_score(y_true,y_pred))

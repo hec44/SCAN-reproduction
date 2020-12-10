@@ -28,13 +28,13 @@ def load_model(SRC,TRG):
     # ENC_DROPOUT = 0.5
     # DEC_DROPOUT = 0.5
 
-    ENC_EMB_DIM = 32
-    DEC_EMB_DIM = 32
-    ENC_HID_DIM = 64
-    DEC_HID_DIM = 64
+    ENC_EMB_DIM = 200
+    DEC_EMB_DIM = 200
+    ENC_HID_DIM = 200
+    DEC_HID_DIM = 200
     ATTN_DIM = 8
-    ENC_DROPOUT = 0.5
-    DEC_DROPOUT = 0.5
+    ENC_DROPOUT = 0.0
+    DEC_DROPOUT = 0.0
 
     enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
 
@@ -76,7 +76,7 @@ def train(model: nn.Module,
 
     model.train()
 
-    for epoch in range(1):
+    for epoch in range(5):
 
         epoch_loss = 0
 
@@ -86,14 +86,20 @@ def train(model: nn.Module,
             trg = batch.trg
 
             #print(src[0].shape, trg[0].shape)
+            #pdb.set_trace()
 
             optimizer.zero_grad()
 
             output = model(src, trg[0])
 
-            output = output[1:].view(-1, output.shape[-1])
+            #pdb.set_trace()
 
-            trg2 = trg[0][:,1:].reshape(output.shape[0])
+            output = output[:,1:]
+            output = output.reshape(output.shape[0]*output.shape[1],-1)
+
+            
+
+            trg2 = trg[0][:,1:].reshape(output.shape[0],)
             
             #pdb.set_trace()
 
