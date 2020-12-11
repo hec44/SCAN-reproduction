@@ -15,7 +15,7 @@ class Encoder(nn.Module):
 				 enc_hid_dim: int,
 				 dec_hid_dim: int,
 				 dropout: float):
-		super().__init__()
+		super(Encoder, self).__init__()
 
 		self.input_dim = input_dim
 		self.emb_dim = emb_dim
@@ -32,9 +32,11 @@ class Encoder(nn.Module):
 		self.dropout = nn.Dropout(dropout)
 
 	def forward(self,
-				src: tuple) -> Tuple[Tensor]:
+				src: Tensor) -> Tuple[Tensor]:
 
-		embedded = self.dropout(self.embedding(src[0]))
+		#src_zero = src[0].to(device)
+		#embedded = self.dropout(self.embedding(src_zero))
+		embedded = self.dropout(self.embedding(src))
 
 		#packed = pack_padded_sequence(embedded, src[1].cpu(),
         #                              batch_first=False)
@@ -54,14 +56,16 @@ class Decoder(nn.Module):
 				 emb_dim: int,
 				 enc_hid_dim: int,
 				 dec_hid_dim: int,
-				 dropout: int):
-		super().__init__()
+				 dropout: int,
+				 device: str):
+		super(Decoder, self).__init__()
 
 		self.emb_dim = emb_dim
 		self.enc_hid_dim = enc_hid_dim
 		self.dec_hid_dim = dec_hid_dim
 		self.output_dim = output_dim
 		self.dropout = dropout
+		self.device = device
 
 		self.embedding = nn.Embedding(output_dim, emb_dim)
 
@@ -78,6 +82,7 @@ class Decoder(nn.Module):
 				decoder_memory: Tensor) -> Tuple[Tensor]:
 
 		decoding_input = decoding_input.unsqueeze(0)
+		decoding_input = decoding_input.to(self.device)
 
 		embedded = self.dropout(self.embedding(decoding_input))
 
@@ -101,25 +106,26 @@ class Seq2Seq(nn.Module):
 	def __init__(self,
 				 encoder: nn.Module,
 				 decoder: nn.Module,
-				 device: torch.device):
-		super().__init__()
+				 device: str):
+		super(Seq2Seq, self).__init__()
 
 		self.encoder = encoder
 		self.decoder = decoder
 		self.device = device
 
 	def forward(self,
-				src: tuple,
+				src: Tensor,
 				trg: Tensor,
 				train: bool = True,
 				teacher_forcing_ratio: float = 0.5) -> Tensor:
 
-		batch_size = src[0].shape[1]
+		#batch_size = src[0].shape[1]
+		batch_size = src.shape[1]
 		max_len = trg.shape[0]
 		trg_vocab_size = self.decoder.output_dim
 
-		outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
-
+		outputs = torch.zeros(max_len, batch_size, trg_vocab_size)
+		outputs = outputs.to(self.device)
 		#outputs = torch.zeros(batch_size, max_len, trg_vocab_size).to(self.device)
 
 		_, hidden, memory = self.encoder(src)
@@ -127,7 +133,7 @@ class Seq2Seq(nn.Module):
 		# first input_vec to the decoder is the <sos> token
 		#output = trg[:,0]
 		#input_vec = trg[:,0]
-		input_vec = trg[0,:]
+		input_vec = trg[0]
 
 		for t in range(1, max_len):
 			output, hidden, memory = self.decoder(input_vec, hidden, memory)
@@ -145,3 +151,5 @@ class Seq2Seq(nn.Module):
 				
 
 		return outputs
+
+

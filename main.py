@@ -2,6 +2,7 @@ from data import load_data
 from train import load_model, train
 import os
 from test import test
+import torch
 
 def main(path_train, path_test, in_ext, out_ext):
     train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext)

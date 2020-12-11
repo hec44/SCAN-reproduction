@@ -9,6 +9,7 @@ from torchtext.data import Dataset, Iterator, Field, BucketIterator
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN
 import dill
 import pdb
+import torch
 cwd = os.getcwd()
 
 def load_data(path_train, path_test, in_ext, out_ext):
@@ -18,6 +19,9 @@ def load_data(path_train, path_test, in_ext, out_ext):
 	load the data into objects which can be used by torchtext.
 	"""
 
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 	tokenizer = lambda x: x.split()
 	lowercase = True
 
@@ -25,13 +29,13 @@ def load_data(path_train, path_test, in_ext, out_ext):
 						   pad_token=PAD_TOKEN, tokenize=tokenizer,
 						   batch_first=False, lower=lowercase,
 						   unk_token=UNK_TOKEN,
-						   include_lengths=True)
+						   include_lengths=False)
 
 	trg = data.Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
 						   pad_token=PAD_TOKEN, tokenize=tokenizer,
 						   unk_token=UNK_TOKEN,
 						   batch_first=False, lower=lowercase,
-						   include_lengths=True)
+						   include_lengths=False)
 
 	train_data = TranslationDataset(path=path_train,
 										exts=("." + in_ext, "." + out_ext),
@@ -53,14 +57,14 @@ def load_data(path_train, path_test, in_ext, out_ext):
 	# make iterator for splits
 	train_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = train_data,
-			batch_size=1, sort_within_batch=True,
-			sort_key=lambda x: len(x.src), shuffle=True)
+			batch_size=64, sort_within_batch=True,
+			sort_key=lambda x: len(x.src), shuffle=True, device=device)
 
 	# make iterator for splits
 	test_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = test_data,
-			batch_size=1, sort_within_batch=True,
-			sort_key=lambda x: len(x.src), shuffle=True)
+			batch_size=64, sort_within_batch=True,
+			sort_key=lambda x: len(x.src), shuffle=True, device=device)
 
 	#pdb.set_trace()
 

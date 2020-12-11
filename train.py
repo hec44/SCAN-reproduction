@@ -16,7 +16,7 @@ cwd = os.getcwd()
 
 def load_model(SRC,TRG):
 
-    device = torch.device('cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
@@ -37,10 +37,17 @@ def load_model(SRC,TRG):
     DEC_DROPOUT = 0.0
 
     enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
+    enc = enc.to(device)
+    #print(next(enc.parameters()).is_cuda)
+    #print('Encoder is on CUDA:{0}'.format(enc.is_cuda))
 
-    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
+    dec = dec.to(device)
 
-    model = Seq2Seq(enc, dec, device).to(device)
+    model = Seq2Seq(enc, dec, device)
+    model = model.to(device)
+
+    #print('Encoder, Decoder, Model is on CUDA: ',enc.device, dec.device, model.device)
 
     def init_weights(m: nn.Module):
         for name, param in m.named_parameters():
@@ -52,7 +59,7 @@ def load_model(SRC,TRG):
 
     model.apply(init_weights)
 
-    optimizer = optim.Adam(model.parameters(),lr=0.0001)
+    optimizer = optim.Adam(model.parameters(),lr=0.001)
 
 
     def count_parameters(model: nn.Module):
@@ -73,24 +80,29 @@ def train(model: nn.Module,
           iterator: BucketIterator,
           optimizer: optim.Optimizer,
           criterion: nn.Module):
-
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     model.train()
 
-    for epoch in range(6):
+    for epoch in range(20):
 
         epoch_loss = 0
 
         for _, batch in tqdm(enumerate(iter(iterator))):
 
-            src = batch.src
-            trg = batch.trg
+            #src = batch.src#[0].to(device)
+            #trg = batch.trg#.to(device)
+            src = batch.src.to(device)
+            trg = batch.trg.to(device)
 
             #print(src[0].shape, trg[0].shape)
             #pdb.set_trace()
 
             optimizer.zero_grad()
 
-            output = model(src, trg[0])
+            #output = model(src, trg[0])
+            output = model(src, trg)
 
             #pdb.set_trace()
             """
@@ -107,9 +119,14 @@ def train(model: nn.Module,
             # first dimension of output should match dimension of trg2.
             """
             output = output[1:].view(-1,output.shape[-1])
-            trg = trg[0][1:].view(-1)
+            #trg = trg[0][1:].view(-1)
+            trg = trg[1:].view(-1)
+
 
             #loss = criterion(output, trg2)
+
+            # UNCOMMENT IF FAILURE: CHANGED 22:24
+            #trg = trg.to(device)
             loss = criterion(output,trg)
 
             loss.backward()
