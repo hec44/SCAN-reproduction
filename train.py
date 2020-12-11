@@ -52,7 +52,7 @@ def load_model(SRC,TRG):
 
     model.apply(init_weights)
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(),lr=0.0001)
 
 
     def count_parameters(model: nn.Module):
@@ -76,7 +76,7 @@ def train(model: nn.Module,
 
     model.train()
 
-    for epoch in range(5):
+    for epoch in range(6):
 
         epoch_loss = 0
 
@@ -93,7 +93,7 @@ def train(model: nn.Module,
             output = model(src, trg[0])
 
             #pdb.set_trace()
-
+            """
             output = output[:,1:]
             output = output.reshape(output.shape[0]*output.shape[1],-1)
 
@@ -105,8 +105,12 @@ def train(model: nn.Module,
 
             # output should be 2-dimensional, and trg2 should be 1-dimensional.
             # first dimension of output should match dimension of trg2.
+            """
+            output = output[1:].view(-1,output.shape[-1])
+            trg = trg[0][1:].view(-1)
 
-            loss = criterion(output, trg2)
+            #loss = criterion(output, trg2)
+            loss = criterion(output,trg)
 
             loss.backward()
 

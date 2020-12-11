@@ -27,7 +27,7 @@ class Encoder(nn.Module):
 
 		self.rnn = nn.LSTM(emb_dim, enc_hid_dim, bidirectional = False, num_layers = 2)
 
-		self.fc = nn.Linear(enc_hid_dim * 2, dec_hid_dim)
+		#self.fc = nn.Linear(enc_hid_dim * 2, dec_hid_dim)
 
 		self.dropout = nn.Dropout(dropout)
 
@@ -36,12 +36,12 @@ class Encoder(nn.Module):
 
 		embedded = self.dropout(self.embedding(src[0]))
 
-		packed = pack_padded_sequence(embedded, src[1].cpu(),
-                                      batch_first=True)
+		#packed = pack_padded_sequence(embedded, src[1].cpu(),
+        #                              batch_first=False)
 
-		outputs, (hidden, memory) = self.rnn(packed)
+		outputs, (hidden, memory) = self.rnn(embedded)
 
-		outputs, _ = pad_packed_sequence(outputs, batch_first=True)
+		#outputs, _ = pad_packed_sequence(outputs, batch_first=False)
 
 		#hidden = torch.tanh(self.fc(torch.cat((hidden[-1][-2,:,:], hidden[-1][-1,:,:]), dim = 1)))
 
@@ -82,16 +82,17 @@ class Decoder(nn.Module):
 		embedded = self.dropout(self.embedding(decoding_input))
 
 		#output, (decoder_hidden, decoder_memory) = self.rnn(embedded, decoder_hidden.unsqueeze(0))
+		#pdb.set_trace()
 		output, (decoder_hidden, decoder_memory) = self.rnn(embedded, (decoder_hidden, decoder_memory))
 
 		#print('\n\n\n\nhehelolz\n\n\n\n')
 
-		embedded = embedded.squeeze(0)
+		#embedded = embedded.squeeze(0)
 		output = output.squeeze(0)
-		decoding_input = decoding_input.squeeze(0)
+		#decoding_input = decoding_input.squeeze(0)
 
 		#output = self.out(torch.cat((output, decoding_input, embedded), dim = 1.0))
-		output = self.softmax(self.out(output))
+		output = self.out(output)
 
 		return output, decoder_hidden, decoder_memory
 
@@ -110,31 +111,35 @@ class Seq2Seq(nn.Module):
 	def forward(self,
 				src: tuple,
 				trg: Tensor,
-				train: bool = False,
+				train: bool = True,
 				teacher_forcing_ratio: float = 0.5) -> Tensor:
 
-		batch_size = src[0].shape[0]
-		max_len = trg.shape[1]
+		batch_size = src[0].shape[1]
+		max_len = trg.shape[0]
 		trg_vocab_size = self.decoder.output_dim
 
-		#outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+		outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
 
-		outputs = torch.zeros(batch_size, max_len, trg_vocab_size).to(self.device)
+		#outputs = torch.zeros(batch_size, max_len, trg_vocab_size).to(self.device)
 
 		_, hidden, memory = self.encoder(src)
 
 		# first input_vec to the decoder is the <sos> token
 		#output = trg[:,0]
-		input_vec = trg[:,0]
+		#input_vec = trg[:,0]
+		input_vec = trg[0,:]
 
 		for t in range(1, max_len):
 			output, hidden, memory = self.decoder(input_vec, hidden, memory)
-			outputs[:,t] = output
+			#outputs[:,t] = output
+			#pdb.set_trace()
+			outputs[t] = output
 			teacher_force = random.random() < teacher_forcing_ratio
 			top1 = output.argmax(1)
 			if train == True:
 				
-				input_vec = (trg[:,t] if teacher_force else top1)
+				#input_vec = (trg[:,t] if teacher_force else top1)
+				input_vec = (trg[t] if teacher_force else top1)
 			else:
 				input_vec = top1
 				
