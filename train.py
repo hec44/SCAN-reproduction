@@ -85,7 +85,7 @@ def train(model: nn.Module,
     
     model.train()
 
-    for epoch in range(20):
+    for epoch in range(25):
 
         epoch_loss = 0
 
