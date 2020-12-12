@@ -10,9 +10,8 @@ from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN
 import dill
 import pdb
 import torch
-cwd = os.getcwd()
 
-def load_data(path_train, path_test, in_ext, out_ext):
+def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=64):
 
 	"""
 	First attempt at creating a working Dataloader that will
@@ -48,22 +47,31 @@ def load_data(path_train, path_test, in_ext, out_ext):
 	src.build_vocab(train_data)
 	trg.build_vocab(train_data)
 
-	with open(os.path.join(cwd, "data_fields", "src.Field"), "wb") as f:
+	print(f"SRC Vocab Freqs: {src.vocab.freqs}")
+	print(f"SRC Vocab STOI: {src.vocab.stoi}")
+	print(f"SRC Vocab ITOS: {src.vocab.itos}")
+	print(f"SRC Vocab Length {len(src.vocab)}")
+	print(f"TRG Vocab Freq: {trg.vocab.freqs}")
+	print(f"TRG Vocab STOI: {trg.vocab.stoi}")
+	print(f"TRG Vocab ITOS: {trg.vocab.itos}")
+	print(f"TRG Vocab Length {len(trg.vocab)}")
+
+	with open(os.path.join(model_dir, "src.Field"), "wb") as f:
 		dill.dump(src, f)
 
-	with open(os.path.join(cwd, "data_fields", "trg.Field"), "wb") as f:
+	with open(os.path.join(model_dir, "trg.Field"), "wb") as f:
 		dill.dump(trg, f)
 
 	# make iterator for splits
 	train_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = train_data,
-			batch_size=64, sort_within_batch=True,
+			batch_size=batch_size, sort_within_batch=True,
 			sort_key=lambda x: len(x.src), shuffle=True, device=device)
 
 	# make iterator for splits
 	test_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = test_data,
-			batch_size=64, sort_within_batch=True,
+			batch_size=batch_size, sort_within_batch=True,
 			sort_key=lambda x: len(x.src), shuffle=True, device=device)
 
 	#pdb.set_trace()

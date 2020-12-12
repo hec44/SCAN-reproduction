@@ -8,7 +8,7 @@ from torch import Tensor
 import pdb
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-class Encoder(nn.Module):
+class LSTMEncoder(nn.Module):
 	def __init__(self,
 				 input_dim: int,
 				 emb_dim: int,
@@ -50,7 +50,7 @@ class Encoder(nn.Module):
 		# returning the last state of the hidden layer
 		return outputs, hidden, memory
 
-class Decoder(nn.Module):
+class LSTMDecoder(nn.Module):
 	def __init__(self,
 				 output_dim: int,
 				 emb_dim: int,

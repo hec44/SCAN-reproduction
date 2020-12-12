@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/SCAN-reproduction.iml" filepath="$PROJECT_DIR$/.idea/SCAN-reproduction.iml" />
+      <module fileurl="file://$USER_HOME$/Lab/scan-reproduction/SCAN-reproduction-hecex1/.idea/SCAN-reproduction-hecex1.iml" filepath="$USER_HOME$/Lab/scan-reproduction/SCAN-reproduction-hecex1/.idea/SCAN-reproduction-hecex1.iml" />
+    </modules>
+  </component>
+</project>

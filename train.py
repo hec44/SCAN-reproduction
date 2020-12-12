@@ -6,15 +6,13 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch import Tensor
 from torchtext.data import BucketIterator
-from models import Encoder,Decoder,Seq2Seq
+from models import LSTMEncoder, LSTMDecoder,Seq2Seq
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
 from tqdm import tqdm
 import os
 import pdb
 
-cwd = os.getcwd()
-
-def load_model(SRC,TRG):
+def load_model(SRC,TRG,state):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -28,21 +26,21 @@ def load_model(SRC,TRG):
     # ENC_DROPOUT = 0.5
     # DEC_DROPOUT = 0.5
 
-    ENC_EMB_DIM = 200
-    DEC_EMB_DIM = 200
-    ENC_HID_DIM = 200
-    DEC_HID_DIM = 200
-    ATTN_DIM = 8
-    ENC_DROPOUT = 0.0
-    DEC_DROPOUT = 0.0
+    ENC_HID_DIM = DEC_HID_DIM = state['hidden_dim']
+    ENC_EMB_DIM = DEC_EMB_DIM = ENC_HID_DIM
+    ENC_DROPOUT = DEC_DROPOUT = state['dropout']
 
-    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
-    enc = enc.to(device)
-    #print(next(enc.parameters()).is_cuda)
-    #print('Encoder is on CUDA:{0}'.format(enc.is_cuda))
+    if state['rnn_type'] == 'lstm':
+        enc = LSTMEncoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
+        enc = enc.to(device)
+        #print(next(enc.parameters()).is_cuda)
+        #print('Encoder is on CUDA:{0}'.format(enc.is_cuda))
 
-    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
-    dec = dec.to(device)
+        dec = LSTMDecoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
+        dec = dec.to(device)
+    else:
+        enc=None
+        dec=None
 
     model = Seq2Seq(enc, dec, device)
     model = model.to(device)
@@ -79,7 +77,8 @@ def load_model(SRC,TRG):
 def train(model: nn.Module,
           iterator: BucketIterator,
           optimizer: optim.Optimizer,
-          criterion: nn.Module):
+          criterion: nn.Module,
+          model_dir: str):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -139,6 +138,6 @@ def train(model: nn.Module,
 
         print(epoch_loss/len(iterator))
 
-        torch.save(model.state_dict(), os.path.join(cwd, 'pretrained', 'model_1_'+str(epoch)+'.pt'))
+        torch.save(model.state_dict(), os.path.join(model_dir, 'model_'+str(epoch)+'.pt'))
 
     return model
