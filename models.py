@@ -187,7 +187,7 @@ class GRU_ATTENTIONDecoder(nn.Module):
 
 		hidden_reshaped = decoder_hidden.repeat(sequence_length,1,1)
 
-		energy = self.relu(self.energy(torch.cat((hidden_reshaped, encoder_output), dim=2)))
+		energy = self.relu(self.energy(F.tanh(torch.cat((hidden_reshaped, encoder_output), dim=2))))
 
 		attention = self.softmax(energy)
 
