@@ -198,9 +198,6 @@ class GRU_ATTENTIONDecoder(nn.Module):
 
 		rnn_input = torch.cat((context_vector, embedded), dim=2)
 
-		#pdb.set_trace()
-
-
 		output, decoder_hidden = self.rnn(rnn_input, decoder_hidden)
 
 		output = output.squeeze(0)
@@ -247,6 +244,24 @@ class Seq2Seq(nn.Module):
 		#input_vec = trg[:,0]
 		input_vec = trg[0]
 
+		if train == False:
+
+			nonstop = True
+			while nonstop:
+				if self.rnn_type == 'lstm':
+					output, hidden, memory = self.decoder(input_vec, hidden, memory)
+				elif self.rnn_type == 'gru':
+					output, hidden = self.decoder(input_vec, hidden, encoder_output)
+				outputs[t] = output
+				teacher_force = random.random() < teacher_forcing_ratio
+				top1 = output.argmax(1)
+				if train == True:
+					#input_vec = (trg[:,t] if teacher_force else top1)
+					input_vec = (trg[t] if teacher_force else top1)
+				else:
+					input_vec = top1
+
+
 		for t in range(1, max_len):
 			if self.rnn_type == 'lstm':
 				output, hidden, memory = self.decoder(input_vec, hidden, memory)
@@ -258,7 +273,6 @@ class Seq2Seq(nn.Module):
 			teacher_force = random.random() < teacher_forcing_ratio
 			top1 = output.argmax(1)
 			if train == True:
-				
 				#input_vec = (trg[:,t] if teacher_force else top1)
 				input_vec = (trg[t] if teacher_force else top1)
 			else:
