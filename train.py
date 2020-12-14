@@ -96,6 +96,7 @@ def train(model: nn.Module,
 
             #src = batch.src#[0].to(device)
             #trg = batch.trg#.to(device)
+            
             src = batch.src.to(device)
             trg = batch.trg.to(device)
 

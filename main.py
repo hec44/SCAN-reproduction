@@ -34,7 +34,7 @@ def main():
     path_train = os.path.join(cwd, 'data', 'experiment2', 'tasks_train_length')
     path_test = os.path.join(cwd, 'data', 'experiment2', 'tasks_test_length')
     in_ext = "in"
-    out_ext = "out"
+    out_ext = "out" 
     """
     state = {
         'batch_size': args.batch_size,
