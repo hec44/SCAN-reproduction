@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 DATA_DIR=data
 TRAIN_PATH=experiment2/tasks_train_length

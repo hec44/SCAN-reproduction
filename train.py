@@ -13,6 +13,7 @@ import os
 import pdb
 import matplotlib.pyplot as plt
 
+
 def load_model(SRC,TRG,state):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -85,9 +86,8 @@ def train(model: nn.Module,
           model_dir: str):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    model.train()
 
+    model.train()
     step_index = 0
     step_loss = 0
     step_loss_values = []
@@ -150,7 +150,7 @@ def train(model: nn.Module,
                 step_loss = 0
 
             if step_index % 10000 == 0:
-                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_index) +'.pt'))
+                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_index) + '.pt'))
 
     # Save training loss plot
     plot_loss(step_loss_values, save_dir=model_dir)

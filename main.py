@@ -1,7 +1,7 @@
 from data import load_data
 from train import load_model, train
 import os
-from test import test
+from test import test, eval
 import argparse
 import torch
 from constants import EOS_TOKEN

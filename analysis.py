@@ -1,11 +1,11 @@
 import os
 
 data_dir = 'data'
-ds_dir = 'experiment3'
-in_train_file = 'tasks_train_addprim_turn_left.in'
-out_train_file = 'tasks_train_addprim_turn_left.out'
-in_test_file = 'tasks_test_addprim_turn_left.in'
-out_test_file = 'tasks_test_addprim_turn_left.out'
+ds_dir = 'experiment1'
+in_train_file = 'tasks_train_simple.in'
+out_train_file = 'tasks_train_simple.in'
+in_test_file = 'tasks_test_simple.in'
+out_test_file = 'tasks_test_simple.in'
 
 def count_max_length_sentence(file):
     with open(file, 'r') as f:
