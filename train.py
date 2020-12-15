@@ -146,14 +146,17 @@ def train(model: nn.Module,
             if step_index % 1000 == 0:
                 print('STEP:', step_loss/1000)
                 step_loss = 0
-                torch.save(model.state_dict(), os.path.join(model_dir, 'model_'+str(step_index)+'.pt'))
+
+                
 
             if step_index >= 100000:
+
                 break
 
         if step_index >= 100000:
             break
 
-    #print(epoch_loss/len(iterator))
+
+    torch.save(model.state_dict(), os.path.join(model_dir, 'model_gruattention.pt'))
 
     return model

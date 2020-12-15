@@ -189,6 +189,7 @@ class GRU_ATTENTIONDecoder(nn.Module):
 
 		energy = self.relu(self.energy(F.tanh(torch.cat((hidden_reshaped, encoder_output), dim=2))))
 
+
 		attention = self.softmax(energy)
 
 		attention = attention.permute(1,2,0)
@@ -224,7 +225,9 @@ class Seq2Seq(nn.Module):
 				src: Tensor,
 				trg: Tensor,
 				train: bool = True,
-				teacher_forcing_ratio: float = 0.5) -> Tensor:
+				teacher_forcing_ratio: float = 0.5,
+        eos_index: int = 3) -> Tensor:
+
 
 		#batch_size = src[0].shape[1]
 		batch_size = src.shape[1]
@@ -246,20 +249,28 @@ class Seq2Seq(nn.Module):
 
 		if train == False:
 
+			outputs=[]
+			i=0
+
+
 			nonstop = True
 			while nonstop:
 				if self.rnn_type == 'lstm':
 					output, hidden, memory = self.decoder(input_vec, hidden, memory)
 				elif self.rnn_type == 'gru':
-					output, hidden = self.decoder(input_vec, hidden, encoder_output)
-				outputs[t] = output
+
+					output, hidden = self.decoder(input_vec, hidden, encoder_output)  
+				#outputs[t] = output
+				#pdb.set_trace()
 				teacher_force = random.random() < teacher_forcing_ratio
 				top1 = output.argmax(1)
-				if train == True:
-					#input_vec = (trg[:,t] if teacher_force else top1)
-					input_vec = (trg[t] if teacher_force else top1)
-				else:
-					input_vec = top1
+				outputs.append(int(top1))
+				if eos_index == int(top1):
+				   return outputs
+				if i>60:
+          #stop when model predict very long sequences
+				   return outputs
+
 
 
 		for t in range(1, max_len):

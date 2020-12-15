@@ -76,4 +76,6 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=1):
 
 	#pdb.set_trace()
 
+
 	return train_iter, test_iter, src, trg
+
