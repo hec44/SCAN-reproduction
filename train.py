@@ -7,10 +7,11 @@ import torch.nn.functional as F
 from torch import Tensor
 from torchtext.data import BucketIterator
 from models import LSTMEncoder, LSTMDecoder,Seq2Seq, GRU_ATTENTIONEncoder, GRU_ATTENTIONDecoder
-from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
+from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP, MAX_TRAIN_STEPS, MAX_INPUT_SEQ_LEN, MAX_OUTPUT_SEQ_LEN
 from tqdm import tqdm
 import os
 import pdb
+import matplotlib.pyplot as plt
 
 def load_model(SRC,TRG,state):
 
@@ -18,6 +19,9 @@ def load_model(SRC,TRG,state):
 
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
+    PAD_IDX = TRG.vocab.stoi[PAD_TOKEN]
+    EOS_IDX = TRG.vocab.stoi[EOS_TOKEN]
+
     # ENC_EMB_DIM = 256
     # DEC_EMB_DIM = 256
     # ENC_HID_DIM = 512
@@ -44,7 +48,8 @@ def load_model(SRC,TRG,state):
         dec=GRU_ATTENTIONDecoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
         dec = dec.to(device)
 
-    model = Seq2Seq(enc, dec, device, state['rnn_type'])
+    model = Seq2Seq(enc, dec, device, state['rnn_type'],
+                    eos_index=EOS_IDX, max_trg_seq_len=MAX_OUTPUT_SEQ_LEN)
     model = model.to(device)
 
     #print('Encoder, Decoder, Model is on CUDA: ',enc.device, dec.device, model.device)
@@ -68,9 +73,6 @@ def load_model(SRC,TRG,state):
 
     print(f'The model has {count_parameters(model):,} trainable parameters')
 
-
-    PAD_IDX = TRG.vocab.stoi['PAD_TOKEN']
-
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 
     return model,optimizer,criterion
@@ -87,10 +89,10 @@ def train(model: nn.Module,
     model.train()
 
     step_index = 0
+    step_loss = 0
+    step_loss_values = []
 
-    for epoch in range(100):
-
-        step_loss = 0
+    while step_index <= MAX_TRAIN_STEPS:
 
         for _, batch in tqdm(enumerate(iter(iterator))):
 
@@ -122,10 +124,9 @@ def train(model: nn.Module,
             # output should be 2-dimensional, and trg2 should be 1-dimensional.
             # first dimension of output should match dimension of trg2.
             """
-            output = output[1:].view(-1,output.shape[-1])
+            output = output[1:].view(-1,output.shape[-1]) # (S X B) X V
             #trg = trg[0][1:].view(-1)
-            trg = trg[1:].view(-1)
-
+            trg = trg[1:].view(-1) # (S X B)
 
             #loss = criterion(output, trg2)
 
@@ -144,19 +145,20 @@ def train(model: nn.Module,
             step_loss += loss.item()
 
             if step_index % 1000 == 0:
-                print('STEP:', step_loss/1000)
+                print('Loss/1K steps:', step_loss/1000)
+                step_loss_values.append(step_loss/1000)
                 step_loss = 0
 
-                
+            if step_index % 10000 == 0:
+                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_index) +'.pt'))
 
-            if step_index >= 100000:
-
-                break
-
-        if step_index >= 100000:
-            break
-
-
-    torch.save(model.state_dict(), os.path.join(model_dir, 'model_gruattention.pt'))
-
+    # Save training loss plot
+    plot_loss(step_loss_values, save_dir=model_dir)
     return model
+
+def plot_loss(loss_step_values, save_dir=None):
+    steps =  [(x+1)*1000 for x in range(len(loss_step_values))]
+    plt.plot(steps, loss_step_values)
+    if save_dir is not None:
+        print(f"Loss values:{loss_step_values}")
+        plt.savefig(os.path.join(save_dir, 'Training_loss.png'))

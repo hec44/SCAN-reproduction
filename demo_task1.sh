@@ -12,5 +12,6 @@ python main.py \
   --test_path=${TEST_PATH} \
   --batch_size=1 \
   --hidden_dim=200 \
-  --dropout=0 \
-  --rnn_type=lstm
+  --dropout=0.5 \
+  --rnn_type=lstm \
+  --eval=0

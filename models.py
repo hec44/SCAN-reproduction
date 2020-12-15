@@ -212,7 +212,10 @@ class Seq2Seq(nn.Module):
 				 encoder: nn.Module,
 				 decoder: nn.Module,
 				 device: str,
-				 rnn_type: str):
+				 rnn_type: str,
+				 teacher_forcing_ratio: float = 0.5,
+				 eos_index: int = 3,
+				 max_trg_seq_len: int = 48):
 		
 		super(Seq2Seq, self).__init__()
 
@@ -220,19 +223,24 @@ class Seq2Seq(nn.Module):
 		self.decoder = decoder
 		self.device = device
 		self.rnn_type = rnn_type
+		self.teacher_forcing_ratio = teacher_forcing_ratio
+		self.eos_index = eos_index
+		self.max_trg_seq_len = max_trg_seq_len
+		print(f"Se2Seq EOS, TFR Config: {self.eos_index, self.teacher_forcing_ratio}")
 
 	def forward(self,
 				src: Tensor,
 				trg: Tensor,
 				train: bool = True,
-				teacher_forcing_ratio: float = 0.5,
-        eos_index: int = 3) -> Tensor:
-
+        ) -> Tensor:
 
 		#batch_size = src[0].shape[1]
+
 		batch_size = src.shape[1]
-		max_len = trg.shape[0]
+		max_len = trg.shape[0] if train else (self.max_trg_seq_len+2)
 		trg_vocab_size = self.decoder.output_dim
+
+		#print(f"Max Seq Length: {max_len}")
 
 		outputs = torch.zeros(max_len, batch_size, trg_vocab_size)
 		outputs = outputs.to(self.device)
@@ -246,33 +254,6 @@ class Seq2Seq(nn.Module):
 		#output = trg[:,0]
 		#input_vec = trg[:,0]
 		input_vec = trg[0]
-
-		if train == False:
-
-			outputs=[]
-			i=0
-
-
-			nonstop = True
-			while nonstop:
-				if self.rnn_type == 'lstm':
-					output, hidden, memory = self.decoder(input_vec, hidden, memory)
-				elif self.rnn_type == 'gru':
-
-					output, hidden = self.decoder(input_vec, hidden, encoder_output)  
-				#outputs[t] = output
-				#pdb.set_trace()
-				teacher_force = random.random() < teacher_forcing_ratio
-				top1 = output.argmax(1)
-				outputs.append(int(top1))
-				if eos_index == int(top1):
-				   return outputs
-				if i>60:
-          #stop when model predict very long sequences
-				   return outputs
-
-
-
 		for t in range(1, max_len):
 			if self.rnn_type == 'lstm':
 				output, hidden, memory = self.decoder(input_vec, hidden, memory)
@@ -281,14 +262,13 @@ class Seq2Seq(nn.Module):
 			#outputs[:,t] = output
 			#pdb.set_trace()
 			outputs[t] = output
-			teacher_force = random.random() < teacher_forcing_ratio
+			teacher_force = random.random() < self.teacher_forcing_ratio
 			top1 = output.argmax(1)
 			if train == True:
 				#input_vec = (trg[:,t] if teacher_force else top1)
 				input_vec = (trg[t] if teacher_force else top1)
 			else:
 				input_vec = top1
-				
 
 		return outputs
 

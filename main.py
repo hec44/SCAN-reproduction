@@ -4,6 +4,7 @@ import os
 from test import test
 import argparse
 import torch
+from constants import EOS_TOKEN
 
 parser = argparse.ArgumentParser(description='SCAN reproduction')
 parser.add_argument('--data_dir', metavar='DIR',
@@ -22,50 +23,54 @@ parser.add_argument('--rnn_type', default='lstm', type=str, metavar='LSTM',
                     help='RNN Tpe is lstm/gru (default: LSTM)')
 parser.add_argument('--model_dir', default='', type=str, metavar='DIR',
                     help='path to model directory (default: none)')
+parser.add_argument('--eval', default=0, type=int, metavar='BOOL',
+                    help='Will Evaluate (default: False)')
 
 def main():
     # Define Arguments
-    cwd = os.getcwd()
     args = parser.parse_args()
-    # EXPERIMENT 1:
-    #path_train = os.path.join(cwd, 'data', 'experiment1', 'tasks_train_simple_p1')
-    #path_test = os.path.join(cwd, 'data', 'experiment1', 'tasks_test_simple_p1')
-    # EXPERIMENT 2:
-    path_train = os.path.join(cwd, 'data', 'experiment2', 'tasks_train_length')
-    path_test = os.path.join(cwd, 'data', 'experiment2', 'tasks_test_length')
+    path_train = os.path.join(args.data_dir, args.train_path)
+    path_test = os.path.join(args.data_dir, args.test_path)
+    model_dir = args.model_dir
+    model_path = os.path.join(args.model_dir, 'model_100000.pt')
+    eval = args.eval
+    batch_size = args.batch_size
+
+    # EXPERIMENTS:
+    #path_train = os.path.join('data', 'experiment1', 'tasks_train_simple')
+    #path_test = os.path.join('data', 'experiment1', 'tasks_test_simple')
+    #model_dir = 'models/tasks_simple'
+    #model_path = os.path.join(model_dir, 'model_100000.pt')
+    #eval = False
+    #batch_size = 1
+
     in_ext = "in"
-    out_ext = "out" 
-    """
+    out_ext = "out"
+
     state = {
-        'batch_size': args.batch_size,
         'hidden_dim': args.hidden_dim,
         'dropout': args.dropout,
         'rnn_type': args.rnn_type
     }
+    """
     state = {
-        'batch_size': 1,
         'hidden_dim': 200,
         'dropout': 0.0,
         'rnn_type': 'lstm'
     }
     """
-    state = {
-        'batch_size': 1,
-        'hidden_dim': 50,
-        'dropout': 0.5,
-        'rnn_type': 'gru'
-    }
-
-    
-    print(f"Run Config State: {state}")
+    print(f"Run Config State, Eval: {state}, {eval}")
 
     # Train and Test
-    train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext, 'pretrained', batch_size=1)
+    train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=batch_size)
     model, optimizer, criterion = load_model(src, trg, state)
-    model = train(model, train_iter, optimizer, criterion, model_dir='pretrained')
-
-    test(model, test_iter,3)
-
+    if eval == 0:
+        print('Training !')
+        model = train(model, train_iter, optimizer, criterion, model_dir=model_dir)
+    else:
+        print('Evaluating !')
+        model.load_state_dict(torch.load(model_path))
+    test(model, test_iter, eos_index=trg.vocab.stoi[EOS_TOKEN])
 
 if __name__ == "__main__":
 	main()
