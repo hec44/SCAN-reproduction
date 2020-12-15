@@ -11,7 +11,7 @@ import dill
 import pdb
 import torch
 
-def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=64):
+def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=1):
 
 	"""
 	First attempt at creating a working Dataloader that will
@@ -76,4 +76,6 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=64):
 
 	#pdb.set_trace()
 
+
 	return train_iter, test_iter, src, trg
+

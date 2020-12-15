@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch import Tensor
 from torchtext.data import BucketIterator
-from models import LSTMEncoder, LSTMDecoder,Seq2Seq
+from models import LSTMEncoder, LSTMDecoder,Seq2Seq, GRU_ATTENTIONEncoder, GRU_ATTENTIONDecoder
 from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP, MAX_TRAIN_STEPS
 from tqdm import tqdm
 import os
@@ -39,11 +39,13 @@ def load_model(SRC,TRG,state):
 
         dec = LSTMDecoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
         dec = dec.to(device)
-    else:
-        enc=None
-        dec=None
+    elif state['rnn_type'] == 'gru':
+        enc=GRU_ATTENTIONEncoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
+        enc = enc.to(device)
+        dec=GRU_ATTENTIONDecoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, device)
+        dec = dec.to(device)
 
-    model = Seq2Seq(enc, dec, device)
+    model = Seq2Seq(enc, dec, device, state['rnn_type'])
     model = model.to(device)
 
     #print('Encoder, Decoder, Model is on CUDA: ',enc.device, dec.device, model.device)
@@ -85,17 +87,16 @@ def train(model: nn.Module,
 
     model.train()
     loss_step_values = []
-    step_idx = 0
     step_loss = 0
+    step_index = 0
 
-    for epoch in range(6):
-
-        epoch_loss = 0
+    while step_index <= MAX_TRAIN_STEPS:
 
         for _, batch in tqdm(enumerate(iter(iterator))):
 
             #src = batch.src#[0].to(device)
             #trg = batch.trg#.to(device)
+            
             src = batch.src.to(device)
             trg = batch.trg.to(device)
 
@@ -138,17 +139,15 @@ def train(model: nn.Module,
 
             optimizer.step()
 
-            step_idx += 1
-            epoch_loss += loss.item()
+            step_index += 1
+
             step_loss += loss.item()
 
-            if step_idx % 1000 == 0:
-                loss_step_values.append(step_loss / 1000)
+            if step_index % 1000 == 0:
+                print('1K STEP Loss:', step_loss/1000)
                 step_loss = 0
-                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_idx) + '.pt'))
-
-        print(epoch_loss/len(iterator))
-
-
+                loss_step_values.append(step_loss / 1000)
+            if step_index % 10000 == 0:
+                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_index) + '.pt'))
 
     return model, loss_step_values
