@@ -226,7 +226,7 @@ class Seq2Seq(nn.Module):
 				trg: Tensor,
 				train: bool = True,
 				teacher_forcing_ratio: float = 0.5,
-        eos_index: int = 3) -> Tensor:
+		eos_index: int = 3) -> Tensor:
 
 
 		#batch_size = src[0].shape[1]
@@ -266,10 +266,10 @@ class Seq2Seq(nn.Module):
 				input_vec = top1
 				outputs.append(int(top1))
 				if eos_index == int(top1):
-				  return outputs
+					return outputs
 				if i>60:
-          #stop when model predict very long sequences
-				  return outputs
+					#stop when model predict very long sequences
+					return outputs
 
 		for t in range(1, max_len):
 			if self.rnn_type == 'lstm':

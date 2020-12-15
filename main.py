@@ -1,7 +1,7 @@
 from data import load_data
 from train import load_model, train
 import os
-from test import test
+from test import test, evaluate
 import argparse
 import torch
 
@@ -28,8 +28,8 @@ def main():
     cwd = os.getcwd()
     args = parser.parse_args()
     # EXPERIMENT 1:
-    path_train = os.path.join(cwd, 'data', 'experiment1', 'tasks_train_simple_p2')
-    path_test = os.path.join(cwd, 'data', 'experiment1', 'tasks_test_simple_p2')
+    path_train = os.path.join(cwd, 'data', 'experiment1', 'tasks_train_simple_p32')
+    path_test = os.path.join(cwd, 'data', 'experiment1', 'tasks_test_simple_p32')
     # EXPERIMENT 2:
     #path_train = os.path.join(cwd, 'data', 'experiment2', 'tasks_train_length')
     #path_test = os.path.join(cwd, 'data', 'experiment2', 'tasks_test_length')
@@ -64,8 +64,9 @@ def main():
     train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext, 'pretrained', batch_size=1)
     model, optimizer, criterion = load_model(src, trg, state)
     model = train(model, train_iter, optimizer, criterion, model_dir='pretrained')
-
-    test(model, test_iter,3)
+    test(model, test_iter, 3)
+    #evaluate(os.path.join(cwd, 'pretrained', 'overall_best_exp1_p2.pt'), model, test_iter, 3)
+    #eval(os.path.join(args.model_dir, args.model_path), model, test_iter)
 
 
 if __name__ == "__main__":
