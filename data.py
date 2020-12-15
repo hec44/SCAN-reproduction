@@ -71,8 +71,8 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=64):
 	# make iterator for splits
 	test_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = test_data,
-			batch_size=batch_size, sort_within_batch=True,
-			sort_key=lambda x: len(x.src), shuffle=True, device=device)
+			batch_size=batch_size, sort_within_batch=False,
+			sort_key=lambda x: len(x.src), shuffle=False, device=device)
 
 	#pdb.set_trace()
 

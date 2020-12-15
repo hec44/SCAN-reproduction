@@ -15,7 +15,7 @@ class LSTMEncoder(nn.Module):
 				 enc_hid_dim: int,
 				 dec_hid_dim: int,
 				 dropout: float):
-		super(Encoder, self).__init__()
+		super(LSTMEncoder, self).__init__()
 
 		self.input_dim = input_dim
 		self.emb_dim = emb_dim
@@ -58,7 +58,7 @@ class LSTMDecoder(nn.Module):
 				 dec_hid_dim: int,
 				 dropout: int,
 				 device: str):
-		super(Decoder, self).__init__()
+		super(LSTMDecoder, self).__init__()
 
 		self.emb_dim = emb_dim
 		self.enc_hid_dim = enc_hid_dim
@@ -121,6 +121,7 @@ class Seq2Seq(nn.Module):
 
 		#batch_size = src[0].shape[1]
 		batch_size = src.shape[1]
+
 		max_len = trg.shape[0]
 		trg_vocab_size = self.decoder.output_dim
 

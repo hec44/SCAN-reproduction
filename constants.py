@@ -10,3 +10,4 @@ EOS_TOKEN = '</s>'
 CLIP = 5.0
 
 DEFAULT_UNK_ID = lambda: 0
+MAX_TRAIN_STEPS = 100000

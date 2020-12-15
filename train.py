@@ -7,10 +7,11 @@ import torch.nn.functional as F
 from torch import Tensor
 from torchtext.data import BucketIterator
 from models import LSTMEncoder, LSTMDecoder,Seq2Seq
-from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP
+from constants import PAD_TOKEN,EOS_TOKEN,UNK_TOKEN,BOS_TOKEN, CLIP, MAX_TRAIN_STEPS
 from tqdm import tqdm
 import os
 import pdb
+
 
 def load_model(SRC,TRG,state):
 
@@ -81,10 +82,13 @@ def train(model: nn.Module,
           model_dir: str):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    model.train()
 
-    for epoch in range(25):
+    model.train()
+    loss_step_values = []
+    step_idx = 0
+    step_loss = 0
+
+    for epoch in range(6):
 
         epoch_loss = 0
 
@@ -134,10 +138,17 @@ def train(model: nn.Module,
 
             optimizer.step()
 
+            step_idx += 1
             epoch_loss += loss.item()
+            step_loss += loss.item()
+
+            if step_idx % 1000 == 0:
+                loss_step_values.append(step_loss / 1000)
+                step_loss = 0
+                torch.save(model.state_dict(), os.path.join(model_dir, 'model_' + str(step_idx) + '.pt'))
 
         print(epoch_loss/len(iterator))
 
-        torch.save(model.state_dict(), os.path.join(model_dir, 'model_'+str(epoch)+'.pt'))
 
-    return model
+
+    return model, loss_step_values

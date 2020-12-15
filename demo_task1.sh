@@ -4,6 +4,7 @@ DATA_DIR=data
 TRAIN_PATH=experiment1/tasks_train_simple
 TEST_PATH=experiment1/tasks_test_simple
 MODEL_DIR=models/tasks_simple
+MODEL_PATH=model_5.pt
 
 python main.py \
   --data_dir=${DATA_DIR} \
