@@ -28,11 +28,11 @@ def main():
     cwd = os.getcwd()
     args = parser.parse_args()
     # EXPERIMENT 1:
-    #path_train = os.path.join(cwd, 'data', 'experiment1', 'tasks_train_simple_p1')
-    #path_test = os.path.join(cwd, 'data', 'experiment1', 'tasks_test_simple_p1')
+    path_train = os.path.join(cwd, 'data', 'experiment1', 'tasks_train_simple_p2')
+    path_test = os.path.join(cwd, 'data', 'experiment1', 'tasks_test_simple_p2')
     # EXPERIMENT 2:
-    path_train = os.path.join(cwd, 'data', 'experiment2', 'tasks_train_length')
-    path_test = os.path.join(cwd, 'data', 'experiment2', 'tasks_test_length')
+    #path_train = os.path.join(cwd, 'data', 'experiment2', 'tasks_train_length')
+    #path_test = os.path.join(cwd, 'data', 'experiment2', 'tasks_test_length')
     in_ext = "in"
     out_ext = "out" 
     """
@@ -42,10 +42,11 @@ def main():
         'dropout': args.dropout,
         'rnn_type': args.rnn_type
     }
+    """
     state = {
         'batch_size': 1,
         'hidden_dim': 200,
-        'dropout': 0.0,
+        'dropout': 0.5,
         'rnn_type': 'lstm'
     }
     """
@@ -55,7 +56,7 @@ def main():
         'dropout': 0.5,
         'rnn_type': 'gru'
     }
-
+    """
     
     print(f"Run Config State: {state}")
 
@@ -63,7 +64,9 @@ def main():
     train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext, 'pretrained', batch_size=1)
     model, optimizer, criterion = load_model(src, trg, state)
     model = train(model, train_iter, optimizer, criterion, model_dir='pretrained')
-    test(model, test_iter)
+
+    test(model, test_iter,3)
+
 
 if __name__ == "__main__":
 	main()

@@ -86,74 +86,47 @@ def train(model: nn.Module,
     
     model.train()
 
+    
+
+    print('TRAINING !!!')
+    #if step_index <= 1000:
+    #while step_index <= 100:
+
     step_index = 0
 
-    for epoch in range(100):
+    for epoch in range(500):
 
-        step_loss = 0
+      for batch_index, batch in tqdm(enumerate(iter(iterator))):
+      
+        src = batch.src.to(device)
+        trg = batch.trg.to(device)
 
-        for _, batch in tqdm(enumerate(iter(iterator))):
+        optimizer.zero_grad()
 
-            #src = batch.src#[0].to(device)
-            #trg = batch.trg#.to(device)
-            
-            src = batch.src.to(device)
-            trg = batch.trg.to(device)
+        output = model(src, trg)
 
-            #print(src[0].shape, trg[0].shape)
-            #pdb.set_trace()
+        output = output[1:].view(-1,output.shape[-1])
 
-            optimizer.zero_grad()
+        trg = trg[1:].view(-1)
 
-            #output = model(src, trg[0])
-            output = model(src, trg)
+        loss = criterion(output,trg)
 
-            #pdb.set_trace()
-            """
-            output = output[:,1:]
-            output = output.reshape(output.shape[0]*output.shape[1],-1)
+        loss.backward()
 
-            
+        torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
 
-            trg2 = trg[0][:,1:].reshape(output.shape[0],)
-            
-            #pdb.set_trace()
+        optimizer.step()
 
-            # output should be 2-dimensional, and trg2 should be 1-dimensional.
-            # first dimension of output should match dimension of trg2.
-            """
-            output = output[1:].view(-1,output.shape[-1])
-            #trg = trg[0][1:].view(-1)
-            trg = trg[1:].view(-1)
+        step_index += 1
 
+        if step_index == 100000:
 
-            #loss = criterion(output, trg2)
+          print('SHOULD BE FINISHED !!!')
 
-            # UNCOMMENT IF FAILURE: CHANGED 22:24
-            #trg = trg.to(device)
-            loss = criterion(output,trg)
+          torch.save(model.state_dict(), os.path.join(model_dir, 'model_test.pt'))
 
-            loss.backward()
-
-            torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
-
-            optimizer.step()
-
-            step_index += 1
-
-            step_loss += loss.item()
-
-            if step_index % 1000 == 0:
-                print('STEP:', step_loss/1000)
-                step_loss = 0
-                torch.save(model.state_dict(), os.path.join(model_dir, 'model_'+str(step_index)+'.pt'))
-
-            if step_index >= 100000:
-                break
-
-        if step_index >= 100000:
-            break
-
-    #print(epoch_loss/len(iterator))
+          break
 
     return model
+
+

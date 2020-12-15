@@ -19,7 +19,7 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=1):
 	"""
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+	#device = 'cpu'
 
 	tokenizer = lambda x: x.split()
 	lowercase = True
@@ -66,14 +66,16 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=1):
 	train_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = train_data,
 			batch_size=batch_size, sort_within_batch=True,
-			sort_key=lambda x: len(x.src), shuffle=True, device=device)
+			sort_key=lambda x: len(x.src), shuffle=True, device=device, train=True)
 
 	# make iterator for splits
 	test_iter = data.BucketIterator(
 			repeat=False, sort=False, dataset = test_data,
 			batch_size=batch_size, sort_within_batch=True,
-			sort_key=lambda x: len(x.src), shuffle=True, device=device)
+			sort_key=lambda x: len(x.src), shuffle=True, device=device, train=False)
 
 	#pdb.set_trace()
 
+
 	return train_iter, test_iter, src, trg
+
