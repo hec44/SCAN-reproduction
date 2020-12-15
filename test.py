@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score
 
 cwd = os.getcwd()
 
+
 def test(model, test_iter,eos_index):
 
 	model.eval()
@@ -18,6 +19,7 @@ def test(model, test_iter,eos_index):
 
 			src = batch.src
 			trg = batch.trg
+
 
 			output = model(src, trg, train=False,eos_index=eos_index)
 			#pdb.set_trace()
@@ -32,7 +34,5 @@ def test(model, test_iter,eos_index):
 			#y_pred=y_pred+list(torch.flatten(output.argmax(2)[:,1:]))
 			#pdb.set_trace()
 	pdb.set_trace()
-	#trues = [tens.item() for tens in y_true]
-	#preds = [tens.item() for tens in y_pred]
 	print("test done")
 	print(accuracy_score(trues, preds))

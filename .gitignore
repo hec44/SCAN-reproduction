@@ -1,1 +1,4 @@
-data/*
+data/SCAN/*
+models/*
+__pycache__
+.idea/*

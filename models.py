@@ -187,7 +187,8 @@ class GRU_ATTENTIONDecoder(nn.Module):
 
 		hidden_reshaped = decoder_hidden.repeat(sequence_length,1,1)
 
-		energy = self.relu(self.energy(torch.cat((hidden_reshaped, encoder_output), dim=2)))
+		energy = self.relu(self.energy(F.tanh(torch.cat((hidden_reshaped, encoder_output), dim=2))))
+
 
 		attention = self.softmax(energy)
 
@@ -227,6 +228,7 @@ class Seq2Seq(nn.Module):
 				teacher_forcing_ratio: float = 0.5,
         eos_index: int = 3) -> Tensor:
 
+
 		#batch_size = src[0].shape[1]
 		batch_size = src.shape[1]
 		max_len = trg.shape[0]
@@ -246,14 +248,17 @@ class Seq2Seq(nn.Module):
 		input_vec = trg[0]
 
 		if train == False:
+
 			outputs=[]
 			i=0
+
 
 			nonstop = True
 			while nonstop:
 				if self.rnn_type == 'lstm':
 					output, hidden, memory = self.decoder(input_vec, hidden, memory)
 				elif self.rnn_type == 'gru':
+
 					output, hidden = self.decoder(input_vec, hidden, encoder_output)  
 				#outputs[t] = output
 				#pdb.set_trace()
@@ -265,6 +270,7 @@ class Seq2Seq(nn.Module):
 				if i>60:
           #stop when model predict very long sequences
 				   return outputs
+
 
 
 		for t in range(1, max_len):
@@ -285,6 +291,5 @@ class Seq2Seq(nn.Module):
 				
 
 		return outputs
-
 
 

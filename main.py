@@ -63,7 +63,9 @@ def main():
     train_iter, test_iter, src, trg = load_data(path_train, path_test, in_ext, out_ext, 'pretrained', batch_size=1)
     model, optimizer, criterion = load_model(src, trg, state)
     model = train(model, train_iter, optimizer, criterion, model_dir='pretrained')
+
     test(model, test_iter,3)
+
 
 if __name__ == "__main__":
 	main()

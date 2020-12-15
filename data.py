@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 # -*- coding: utf-8 -*-
 
 # dataloader
@@ -77,8 +75,7 @@ def load_data(path_train, path_test, in_ext, out_ext, model_dir, batch_size=1):
 			sort_key=lambda x: len(x.src), shuffle=True, device=device)
 
 	#pdb.set_trace()
-  
 
 
 	return train_iter, test_iter, src, trg
->>>>>>> Stashed changes
+

@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-cwd = os.getcwd()
+import glob
 
 def generate_dataset(path_org,path_trg):
     """
@@ -15,10 +14,9 @@ def generate_dataset(path_org,path_trg):
         path_trg (string): location of where we will save 
                             the new files
     """
-    lines_in = []
-    lines_out = []
+
     lines = open(path_org,'r').readlines()
-    
+
     with open(path_trg+".in","w+") as file_in_out, open(path_trg+".out","w+") as file_out_out:
         for line in lines:
             line_list = line.split(':')
@@ -27,7 +25,12 @@ def generate_dataset(path_org,path_trg):
             file_in_out.write(line_in+"\n")
             file_out_out.write(line_out)
 
-
 if __name__ == "__main__":
-    generate_dataset(os.path.join(cwd, "data\\simple_split\\tasks_test_simple.txt"),\
-                      os.path.join(cwd, "data\\experiment1\\test"))
+
+    data_dir = 'data'
+    scan_data_files = glob.glob("data/SCAN/*.txt")
+    print(scan_data_files)
+
+    for data_file in scan_data_files:
+        file_name = os.path.basename(data_file).split('.')[0]
+        generate_dataset(data_file, os.path.join(data_dir, file_name))
